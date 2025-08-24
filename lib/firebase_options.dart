@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
     projectId: 'agritech-ac407',
     authDomain: 'agritech-ac407.firebaseapp.com',
     databaseURL: 'https://agritech-ac407-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'agritech-ac407.firebasestorage.app',
+     storageBucket: 'agritech-ac407.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -65,7 +65,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '760846035526',
     projectId: 'agritech-ac407',
     databaseURL: 'https://agritech-ac407-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'agritech-ac407.firebasestorage.app',
+     storageBucket: 'agritech-ac407.appspot.com',
   );
 
 }
