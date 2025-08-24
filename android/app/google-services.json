@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "760846035526",
+    "firebase_url": "https://agritech-ac407-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "agritech-ac407",
+    "storage_bucket": "agritech-ac407.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760846035526:android:0fe8fe730315d536ba7847",
+        "android_client_info": {
+          "package_name": "com.example.agritech"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "760846035526-r9gj1cp4dlvuffskuni7chbu9kve7dco.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.agritech",
+            "certificate_hash": "5d8e0750bc76cee00e3b6aa75962ffd03239470f"
+          }
+        },
+        {
+          "client_id": "760846035526-nq8osch1oidep5tths4k19g687a3fg27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDHkRPVjWa5myqcfHYF8MVc9Oq_Y63hU4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760846035526-nq8osch1oidep5tths4k19g687a3fg27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
