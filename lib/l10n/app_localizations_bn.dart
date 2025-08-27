@@ -202,4 +202,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get statusLabel => 'স্ট্যাটাস';
+
+  @override
+  String get pricePerKg => 'প্রতি কেজি মূল্য';
 }

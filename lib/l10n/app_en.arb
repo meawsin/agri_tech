@@ -64,5 +64,6 @@
     "noOrdersYet": "You have no orders yet.",
     "quantityLabel": "Quantity",
     "fromLabel": "From",
-    "statusLabel": "Status"
+    "statusLabel": "Status",
+    "pricePerKg": "Price per Kg"
 }

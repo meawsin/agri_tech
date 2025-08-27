@@ -64,5 +64,6 @@
     "noOrdersYet": "আপনার এখনো কোনো অর্ডার নেই।",
     "quantityLabel": "পরিমাণ",
     "fromLabel": "থেকে",
-    "statusLabel": "স্ট্যাটাস"
+    "statusLabel": "স্ট্যাটাস",
+    "pricePerKg": "প্রতি কেজি মূল্য"
 }

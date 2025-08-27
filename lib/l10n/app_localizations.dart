@@ -484,6 +484,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get statusLabel;
+
+  /// No description provided for @pricePerKg.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per Kg'**
+  String get pricePerKg;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

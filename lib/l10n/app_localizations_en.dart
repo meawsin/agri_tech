@@ -202,4 +202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusLabel => 'Status';
+
+  @override
+  String get pricePerKg => 'Price per Kg';
 }

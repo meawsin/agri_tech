@@ -1,3 +1,6 @@
+// lib/features/farmer/views/farmer_home_view.dart
+
+import 'package:agritech/features/farmer/views/all_my_crops_view.dart'; // <-- ADD THIS IMPORT
 import 'package:agritech/features/farmer/views/edit_profile_view.dart';
 import 'package:agritech/l10n/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,7 +30,6 @@ class FarmerHomeView extends StatelessWidget {
 
           return CustomScrollView(
             slivers: [
-              // --- Custom Header ---
               SliverAppBar(
                 backgroundColor: Colors.green,
                 expandedHeight: 120.0,
@@ -50,8 +52,6 @@ class FarmerHomeView extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // --- Main Content ---
               SliverList(
                 delegate: SliverChildListDelegate([
                   Padding(
@@ -61,11 +61,19 @@ class FarmerHomeView extends StatelessWidget {
                         if (!isProfileComplete)
                           _buildProfileCompletionCard(context, l10n, userData),
                         const SizedBox(height: 16),
-                        _buildSectionHeader(context, l10n.myListedCrops, () {}),
+                        _buildSectionHeader(
+                          context,
+                          l10n.myListedCrops,
+                          () {
+                            // THIS IS THE CHANGE
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const AllMyCropsView(),
+                            ));
+                          },
+                        ),
                         const SizedBox(height: 8),
-                        // StreamBuilder to display the farmer's crops
                         SizedBox(
-                          height: 220, // Give the list a fixed height
+                          height: 220,
                           child: StreamBuilder<QuerySnapshot>(
                             stream: dbService.getMyListedCropsStream(),
                             builder: (context, snapshot) {
@@ -89,17 +97,15 @@ class FarmerHomeView extends StatelessWidget {
                               final crops = snapshot.data!.docs;
 
                               return ListView.builder(
-                                scrollDirection: Axis
-                                    .horizontal, // Makes the list scroll sideways
+                                scrollDirection: Axis.horizontal,
                                 itemCount: crops.length,
                                 itemBuilder: (context, index) {
-                                  final crop =
-                                      crops[index].data()
-                                          as Map<String, dynamic>;
+                                  final crop = crops[index].data()
+                                      as Map<String, dynamic>;
                                   return Card(
                                     margin: const EdgeInsets.only(right: 16),
                                     child: Container(
-                                      width: 200, // Fixed width for each card
+                                      width: 200,
                                       padding: const EdgeInsets.all(12.0),
                                       child: Column(
                                         crossAxisAlignment:
@@ -150,7 +156,6 @@ class FarmerHomeView extends StatelessWidget {
     );
   }
 
-  // Helper Widgets
   Widget _buildProfileCompletionCard(
     BuildContext context,
     AppLocalizations l10n,

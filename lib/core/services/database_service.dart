@@ -146,6 +146,37 @@ class DatabaseService {
     });
   }
 
+
+  Future<void> updateCrop({
+    required String cropId,
+    required String cropType,
+    required double initialQuantityKg,
+    required double pricePerKg,
+    String? variant,
+    String? seedBrand,
+    DateTime? plantationDate,
+    DateTime? estimatedHarvestDate,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final cropRef = _firestore.collection('crops').doc(cropId);
+
+    await cropRef.update({
+      'cropType': cropType,
+      'initialQuantityKg': initialQuantityKg,
+      'pricePerKg': pricePerKg,
+      'variant': variant,
+      'seedBrand': seedBrand,
+      'plantationDate':
+          plantationDate != null ? Timestamp.fromDate(plantationDate) : null,
+      'estimatedHarvestDate': estimatedHarvestDate != null
+          ? Timestamp.fromDate(estimatedHarvestDate)
+          : null,
+    });
+  }
+
+  
   Stream<QuerySnapshot> getMyListedCropsStream() {
     final user = _auth.currentUser;
     if (user == null) {
