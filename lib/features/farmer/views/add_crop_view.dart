@@ -3,6 +3,7 @@
 import 'package:agritech/core/services/database_service.dart';
 import 'package:agritech/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddCropView extends StatefulWidget {
   const AddCropView({super.key});
@@ -16,10 +17,11 @@ class _AddCropViewState extends State<AddCropView> {
   final _cropTypeController = TextEditingController();
   final _quantityController = TextEditingController();
   final _priceController = TextEditingController();
-
-  // Optional controllers for more detail
   final _variantController = TextEditingController();
   final _seedBrandController = TextEditingController();
+
+  DateTime? _plantationDate;
+  DateTime? _estimatedHarvestDate;
 
   final DatabaseService _dbService = DatabaseService();
   bool _isLoading = false;
@@ -34,17 +36,35 @@ class _AddCropViewState extends State<AddCropView> {
     super.dispose();
   }
 
+  Future<void> _selectDate(BuildContext context,
+      {required bool isPlantationDate}) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isPlantationDate) {
+          _plantationDate = picked;
+        } else {
+          _estimatedHarvestDate = picked;
+        }
+      });
+    }
+  }
+
   Future<void> _saveCrop() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // Use a boolean to track success
     bool isSuccess = false;
+    final l10n = AppLocalizations.of(context)!;
 
     try {
-      final double initialQuantity = double.parse(
-        _quantityController.text.trim(),
-      );
+      final double initialQuantity =
+          double.parse(_quantityController.text.trim());
       final double pricePerKg = double.parse(_priceController.text.trim());
 
       await _dbService.addCrop(
@@ -53,15 +73,16 @@ class _AddCropViewState extends State<AddCropView> {
         pricePerKg: pricePerKg,
         variant: _variantController.text.trim(),
         seedBrand: _seedBrandController.text.trim(),
+        plantationDate: _plantationDate,
+        estimatedHarvestDate: _estimatedHarvestDate,
       );
 
-      // Set the flag to true ONLY if the await call completes without error
       isSuccess = true;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to list crop: $e'),
+            content: Text('${l10n.failedToListCrop}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -69,11 +90,10 @@ class _AddCropViewState extends State<AddCropView> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
-        // Only show success and pop the screen if the operation was successful
         if (isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Crop listed successfully!'),
+            SnackBar(
+              content: Text(l10n.cropListedSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -89,7 +109,7 @@ class _AddCropViewState extends State<AddCropView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('List a New Crop'),
+        title: Text(l10n.addCropTitle),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
@@ -101,54 +121,64 @@ class _AddCropViewState extends State<AddCropView> {
             children: [
               TextFormField(
                 controller: _cropTypeController,
-                decoration: const InputDecoration(
-                  labelText: 'Crop Type (e.g., Tomato, Potato)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.cropTypeHint,
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter a crop type'
-                    : null,
+                validator: (value) =>
+                    (value == null || value.isEmpty) ? l10n.cropTypeValidation : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _quantityController,
-                decoration: const InputDecoration(
-                  labelText: 'Expected Total Quantity (in Kg)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.quantityHint,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter a quantity'
-                    : null,
+                validator: (value) =>
+                    (value == null || value.isEmpty) ? l10n.quantityValidation : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Price per Kg (in BDT)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.priceHint,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter a price'
-                    : null,
+                validator: (value) =>
+                    (value == null || value.isEmpty) ? l10n.priceValidation : null,
               ),
               const SizedBox(height: 24),
-              // Optional fields from your PDF
               TextFormField(
                 controller: _variantController,
-                decoration: const InputDecoration(
-                  labelText: 'Variant (Optional, e.g., Roma)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.variantHint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _seedBrandController,
-                decoration: const InputDecoration(
-                  labelText: 'Seed Brand (Optional)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.seedBrandHint,
+                  border: const OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16),
+              _buildDatePicker(
+                context: context,
+                label: l10n.plantationDateLabel,
+                date: _plantationDate,
+                onPressed: () => _selectDate(context, isPlantationDate: true),
+              ),
+              const SizedBox(height: 16),
+              _buildDatePicker(
+                context: context,
+                label: l10n.estimatedHarvestDateLabel,
+                date: _estimatedHarvestDate,
+                onPressed: () => _selectDate(context, isPlantationDate: false),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -160,13 +190,34 @@ class _AddCropViewState extends State<AddCropView> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'List This Crop',
-                        style: TextStyle(fontSize: 18),
+                    : Text(
+                        l10n.listCropButton,
+                        style: const TextStyle(fontSize: 18),
                       ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker({
+    required BuildContext context,
+    required String label,
+    required DateTime? date,
+    required VoidCallback onPressed,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return InkWell(
+      onTap: onPressed,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        child: Text(
+          date != null ? DateFormat.yMMMd().format(date) : l10n.selectDate,
         ),
       ),
     );

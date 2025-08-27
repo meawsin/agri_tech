@@ -16,8 +16,11 @@ class FarmerHomeView extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot>(
         stream: dbService.getUserProfileStream(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data?.data() == null) {
+            return const Center(child: Text("User data not found."));
           }
           final userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
           final bool isProfileComplete = userData['profileCompleted'] ?? false;

@@ -142,4 +142,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gallery => 'Gallery';
+
+  @override
+  String get addCropTitle => 'List a New Crop';
+
+  @override
+  String get cropTypeHint => 'Crop Type (e.g., Tomato, Potato)';
+
+  @override
+  String get quantityHint => 'Expected Total Quantity (in Kg)';
+
+  @override
+  String get priceHint => 'Price per Kg (in BDT)';
+
+  @override
+  String get variantHint => 'Variant (Optional, e.g., Roma)';
+
+  @override
+  String get seedBrandHint => 'Seed Brand (Optional)';
+
+  @override
+  String get plantationDateLabel => 'Plantation Date';
+
+  @override
+  String get estimatedHarvestDateLabel => 'Estimated Harvest Date';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get listCropButton => 'List This Crop';
+
+  @override
+  String get cropTypeValidation => 'Please enter a crop type';
+
+  @override
+  String get quantityValidation => 'Please enter a quantity';
+
+  @override
+  String get priceValidation => 'Please enter a price';
+
+  @override
+  String get failedToListCrop => 'Failed to list crop';
+
+  @override
+  String get cropListedSuccess => 'Crop listed successfully!';
+
+  @override
+  String get myOrdersTitle => 'My Orders';
+
+  @override
+  String get noOrdersYet => 'You have no orders yet.';
+
+  @override
+  String get quantityLabel => 'Quantity';
+
+  @override
+  String get fromLabel => 'From';
+
+  @override
+  String get statusLabel => 'Status';
 }

@@ -28,6 +28,7 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_typeahead: ^5.2.0
   percent_indicator: ^4.2.5
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

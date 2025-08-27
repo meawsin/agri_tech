@@ -4,13 +4,18 @@ import 'package:agritech/core/services/database_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class CropDetailsView extends StatelessWidget {
+class CropDetailsView extends StatefulWidget {
   final QueryDocumentSnapshot cropDoc;
 
   const CropDetailsView({super.key, required this.cropDoc});
 
+  @override
+  State<CropDetailsView> createState() => _CropDetailsViewState();
+}
 
-  void _showPlaceOrderDialog(BuildContext context, Map<String, dynamic> crop) {
+class _CropDetailsViewState extends State<CropDetailsView> {
+  void _showPlaceOrderDialog(
+      BuildContext context, Map<String, dynamic> crop) {
     final quantityController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -52,26 +57,33 @@ class CropDetailsView extends StatelessWidget {
               child: const Text('Confirm Order'),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final quantity = double.parse(quantityController.text.trim());
+                  final quantity =
+                      double.parse(quantityController.text.trim());
                   final dbService = DatabaseService();
 
                   try {
                     await dbService.placeOrder(
-                      cropId: cropDoc.id,
+                      cropId: widget.cropDoc.id,
                       farmerUid: crop['farmerUid'],
                       farmerName: crop['farmerName'],
                       cropType: crop['cropType'],
                       quantityKg: quantity,
                       pricePerKg: crop['pricePerKg'].toDouble(),
                     );
-                    Navigator.of(context).pop(); // Close the dialog
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Order placed successfully!'), backgroundColor: Colors.green),
+                      const SnackBar(
+                          content: Text('Order placed successfully!'),
+                          backgroundColor: Colors.green),
                     );
                   } catch (e) {
-                     Navigator.of(context).pop(); // Close the dialog
-                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+                    if (!mounted) return;
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: Colors.red),
                     );
                   }
                 }
@@ -83,10 +95,9 @@ class CropDetailsView extends StatelessWidget {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final crop = cropDoc.data() as Map<String, dynamic>;
+    final crop = widget.cropDoc.data() as Map<String, dynamic>;
 
     return Scaffold(
       appBar: AppBar(
@@ -100,7 +111,10 @@ class CropDetailsView extends StatelessWidget {
           children: [
             Text(
               crop['cropType'] ?? 'Unknown Crop',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             if (crop['variant'] != null && crop['variant'].isNotEmpty)
               Text(
@@ -115,10 +129,13 @@ class CropDetailsView extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildDetailRow('Price', '৳ ${crop['pricePerKg']} / Kg'),
-                    _buildDetailRow('Available Quantity', '${crop['availableQuantityKg']} Kg'),
+                    _buildDetailRow(
+                        'Available Quantity', '${crop['availableQuantityKg']} Kg'),
                     _buildDetailRow('Listed by', crop['farmerName'] ?? 'N/A'),
-                    _buildDetailRow('Farm Location', crop['farmerLocation'] ?? 'Not Available'),
-                    if (crop['seedBrand'] != null && crop['seedBrand'].isNotEmpty)
+                    _buildDetailRow(
+                        'Farm Location', crop['farmerLocation'] ?? 'Not Available'),
+                    if (crop['seedBrand'] != null &&
+                        crop['seedBrand'].isNotEmpty)
                       _buildDetailRow('Seed Brand', crop['seedBrand']),
                   ],
                 ),
@@ -132,11 +149,10 @@ class CropDetailsView extends StatelessWidget {
                 label: const Text('Place Order'),
                 onPressed: () => _showPlaceOrderDialog(context, crop),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(fontSize: 18)
-                ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 18)),
               ),
             )
           ],
@@ -151,7 +167,9 @@ class CropDetailsView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),

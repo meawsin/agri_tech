@@ -364,6 +364,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gallery'**
   String get gallery;
+
+  /// No description provided for @addCropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'List a New Crop'**
+  String get addCropTitle;
+
+  /// No description provided for @cropTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Type (e.g., Tomato, Potato)'**
+  String get cropTypeHint;
+
+  /// No description provided for @quantityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Total Quantity (in Kg)'**
+  String get quantityHint;
+
+  /// No description provided for @priceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per Kg (in BDT)'**
+  String get priceHint;
+
+  /// No description provided for @variantHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Variant (Optional, e.g., Roma)'**
+  String get variantHint;
+
+  /// No description provided for @seedBrandHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Brand (Optional)'**
+  String get seedBrandHint;
+
+  /// No description provided for @plantationDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Plantation Date'**
+  String get plantationDateLabel;
+
+  /// No description provided for @estimatedHarvestDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Harvest Date'**
+  String get estimatedHarvestDateLabel;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @listCropButton.
+  ///
+  /// In en, this message translates to:
+  /// **'List This Crop'**
+  String get listCropButton;
+
+  /// No description provided for @cropTypeValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a crop type'**
+  String get cropTypeValidation;
+
+  /// No description provided for @quantityValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a quantity'**
+  String get quantityValidation;
+
+  /// No description provided for @priceValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a price'**
+  String get priceValidation;
+
+  /// No description provided for @failedToListCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to list crop'**
+  String get failedToListCrop;
+
+  /// No description provided for @cropListedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop listed successfully!'**
+  String get cropListedSuccess;
+
+  /// No description provided for @myOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Orders'**
+  String get myOrdersTitle;
+
+  /// No description provided for @noOrdersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no orders yet.'**
+  String get noOrdersYet;
+
+  /// No description provided for @quantityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantityLabel;
+
+  /// No description provided for @fromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get fromLabel;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

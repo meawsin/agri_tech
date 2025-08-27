@@ -1,3 +1,5 @@
+// lib/core/services/database_service.dart
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,10 +27,9 @@ class DatabaseService {
     }
   }
 
-  // UPDATED FUNCTION: 'location' is now a simple String
   Future<void> updateUserProfile({
     required String farmName,
-    required String location, // Changed back to String
+    required String location,
     String? profileImageUrl,
     String? nidFrontUrl,
     String? nidBackUrl,
@@ -38,7 +39,7 @@ class DatabaseService {
 
     await _firestore.collection('users').doc(user.uid).set({
       'farmName': farmName,
-      'location': location, // Saves the simple string
+      'location': location,
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       if (nidFrontUrl != null) 'nidFrontImageUrl': nidFrontUrl,
       if (nidBackUrl != null) 'nidBackImageUrl': nidBackUrl,
@@ -55,31 +56,35 @@ class DatabaseService {
     required double pricePerKg,
     String? variant,
     String? seedBrand,
+    DateTime? plantationDate,
+    DateTime? estimatedHarvestDate,
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-     // Fetch the farmer's name AND location for denormalization
     final userDoc = await _firestore.collection('users').doc(user.uid).get();
     final userData = userDoc.data() ?? {};
     final farmerName = userData['displayName'] ?? 'Unknown Farmer';
     final farmerLocation = userData['location'] ?? 'Not Specified';
 
-    // Create a reference to a new document with a unique ID
     final cropRef = _firestore.collection('crops').doc();
 
-   await cropRef.set({
+    await cropRef.set({
       'cropId': cropRef.id,
       'farmerUid': user.uid,
       'farmerName': farmerName,
-      'farmerLocation': farmerLocation, // <-- ADD THIS FIELD
+      'farmerLocation': farmerLocation,
       'cropType': cropType,
       'initialQuantityKg': initialQuantityKg,
       'availableQuantityKg': initialQuantityKg,
       'pricePerKg': pricePerKg,
       'variant': variant,
       'seedBrand': seedBrand,
-      'plantationDate': Timestamp.now(),
+      'plantationDate':
+          plantationDate != null ? Timestamp.fromDate(plantationDate) : null,
+      'estimatedHarvestDate': estimatedHarvestDate != null
+          ? Timestamp.fromDate(estimatedHarvestDate)
+          : null,
       'status': 'growing',
       'qcStatus': 'pending',
       'photos': [],
@@ -98,32 +103,32 @@ class DatabaseService {
     final retailer = _auth.currentUser;
     if (retailer == null) return;
 
-    final retailerDoc = await _firestore.collection('users').doc(retailer.uid).get();
-    final retailerName = retailerDoc.data()?['displayName'] ?? 'Unknown Retailer';
+    final retailerDoc =
+        await _firestore.collection('users').doc(retailer.uid).get();
+    final retailerName =
+        retailerDoc.data()?['displayName'] ?? 'Unknown Retailer';
 
     final orderRef = _firestore.collection('orders').doc();
     final cropRef = _firestore.collection('crops').doc(cropId);
 
     final double totalPrice = quantityKg * pricePerKg;
 
-    // Use a transaction to ensure data consistency
     await _firestore.runTransaction((transaction) async {
       final cropSnapshot = await transaction.get(cropRef);
       if (!cropSnapshot.exists) {
         throw Exception("Crop does not exist!");
       }
 
-      final double availableQuantity = cropSnapshot.data()!['availableQuantityKg'];
+      final double availableQuantity =
+          cropSnapshot.data()!['availableQuantityKg'];
       if (availableQuantity < quantityKg) {
         throw Exception("Not enough quantity available.");
       }
 
-      // Update the crop's available quantity
       transaction.update(cropRef, {
         'availableQuantityKg': availableQuantity - quantityKg,
       });
 
-      // Create the new order document
       transaction.set(orderRef, {
         'orderId': orderRef.id,
         'cropId': cropId,
@@ -134,7 +139,6 @@ class DatabaseService {
         'orderStatus': 'placed',
         'paymentStatus': 'pending',
         'createdAt': Timestamp.now(),
-        // Denormalized data for easy display
         'cropName': cropType,
         'farmerName': farmerName,
         'retailerName': retailerName,
@@ -142,8 +146,6 @@ class DatabaseService {
     });
   }
 
-
-  // Stream for the farmer to see ONLY their own crops
   Stream<QuerySnapshot> getMyListedCropsStream() {
     final user = _auth.currentUser;
     if (user == null) {
@@ -156,11 +158,22 @@ class DatabaseService {
         .snapshots();
   }
 
-  // Stream for the retailer to see ALL available crops
+    Stream<QuerySnapshot> getMyOrdersStream() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Stream.empty();
+    }
+    return _firestore
+        .collection('orders')
+        .where('farmerUid', isEqualTo: user.uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
   Stream<QuerySnapshot> getAllAvailableCropsStream() {
     return _firestore
         .collection('crops')
-        .where('status', isEqualTo: 'growing') // Or 'available'
+        .where('status', isEqualTo: 'growing')
         .orderBy('createdAt', descending: true)
         .snapshots();
   }

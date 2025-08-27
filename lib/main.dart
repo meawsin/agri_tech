@@ -8,7 +8,9 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
   runApp(const AgriTechApp());
 }
@@ -19,6 +21,7 @@ class AppState extends InheritedWidget {
   static AppState? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<AppState>();
   }
+
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }
@@ -64,7 +67,11 @@ class _AgriTechAppState extends State<AgriTechApp> {
         locale: _locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(primarySwatch: Colors.green, visualDensity: VisualDensity.adaptivePlatformDensity),
+        theme: ThemeData(
+          // Default theme for the app
+          primarySwatch: Colors.green,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
         home: const AuthWrapper(),
       ),
     );

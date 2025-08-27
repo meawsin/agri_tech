@@ -90,7 +90,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get home => 'হোম';
 
   @override
-  String get wallet => 'ওয়ালেট';
+  String get wallet => 'ওয়ালেট';
 
   @override
   String get profile => 'প্রোফাইল';
@@ -142,4 +142,64 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get gallery => 'গ্যালারি';
+
+  @override
+  String get addCropTitle => 'নতুন ফসল তালিকাভুক্ত করুন';
+
+  @override
+  String get cropTypeHint => 'ফসলের ধরন (যেমন, টমেটো, আলু)';
+
+  @override
+  String get quantityHint => 'প্রত্যাশিত মোট পরিমাণ (কেজিতে)';
+
+  @override
+  String get priceHint => 'প্রতি কেজি মূল্য (BDT)';
+
+  @override
+  String get variantHint => 'জাত (ঐচ্ছিক, যেমন, রোমা)';
+
+  @override
+  String get seedBrandHint => 'বীজের ব্র্যান্ড (ঐচ্ছিক)';
+
+  @override
+  String get plantationDateLabel => 'রোপণের তারিখ';
+
+  @override
+  String get estimatedHarvestDateLabel => 'আনুমানিক ফসল তোলার তারিখ';
+
+  @override
+  String get selectDate => 'তারিখ নির্বাচন করুন';
+
+  @override
+  String get listCropButton => 'এই ফসল তালিকাভুক্ত করুন';
+
+  @override
+  String get cropTypeValidation => 'অনুগ্রহ করে ফসলের ধরন লিখুন';
+
+  @override
+  String get quantityValidation => 'অনুগ্রহ করে পরিমাণ লিখুন';
+
+  @override
+  String get priceValidation => 'অনুগ্রহ করে মূল্য লিখুন';
+
+  @override
+  String get failedToListCrop => 'ফসল তালিকাভুক্ত করতে ব্যর্থ হয়েছে';
+
+  @override
+  String get cropListedSuccess => 'ফসল সফলভাবে তালিকাভুক্ত হয়েছে!';
+
+  @override
+  String get myOrdersTitle => 'আমার অর্ডার';
+
+  @override
+  String get noOrdersYet => 'আপনার এখনো কোনো অর্ডার নেই।';
+
+  @override
+  String get quantityLabel => 'পরিমাণ';
+
+  @override
+  String get fromLabel => 'থেকে';
+
+  @override
+  String get statusLabel => 'স্ট্যাটাস';
 }
