@@ -65,5 +65,18 @@
     "quantityLabel": "Quantity",
     "fromLabel": "From",
     "statusLabel": "Status",
-    "pricePerKg": "Price per Kg"
+    "pricePerKg": "Price per Kg",
+    "personalInformation": "Personal Information",
+    "farmInformation": "Farm Information",
+    "name": "Name",
+    "email": "Email",
+    "mobile": "Mobile",
+    "division": "Division",
+    "district": "District",
+    "upazilaThana": "Upazila / Thana",
+    "villageArea": "Village / Area",
+    "notSet": "Not Set",
+    "updateSuccess": "Profile updated successfully!",
+    "updateFailed": "Failed to update profile",
+    "requiredField": "This field is required"
 }

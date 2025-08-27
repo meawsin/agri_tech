@@ -1,3 +1,5 @@
+// lib/features/farmer/views/farmer_profile_view.dart
+
 import 'package:agritech/core/services/database_service.dart';
 import 'package:agritech/features/farmer/views/edit_profile_view.dart';
 import 'package:agritech/l10n/app_localizations.dart';
@@ -19,35 +21,42 @@ class FarmerProfileView extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-              appBar: AppBar(title: Text(l10n.myProfile), backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
+              appBar: AppBar(title: Text(l10n.myProfile), backgroundColor: Colors.white),
               body: const Center(child: CircularProgressIndicator()));
         }
         if (!snapshot.hasData || snapshot.data?.data() == null) {
           return Scaffold(
               appBar: AppBar(title: Text(l10n.myProfile), backgroundColor: Colors.white),
-              body: const Center(child: Text("User data not found.")));
+              body: Center(child: Text("User data not found.")));
         }
 
         final userData = snapshot.data!.data() as Map<String, dynamic>;
-
-        // --- THIS IS THE FIX FOR THE CRASH ---
-        String displayLocation = 'Not Set';
+        
+        // --- THIS IS THE FIX ---
+        String displayLocation = l10n.notSet;
         final locationData = userData['location'];
-        if (locationData is Map) {
+
+        if (locationData is Map<String, dynamic>) {
           // Handles the new, detailed format
-          displayLocation = '${locationData['village']}, ${locationData['upazila']}';
-        } else if (locationData is String) {
+          displayLocation = [
+            locationData['village'],
+            locationData['upazila'],
+            locationData['district'],
+            locationData['division']
+          ].where((s) => s != null && s.isNotEmpty).join(', ');
+        } else if (locationData is String && locationData.isNotEmpty) {
           // Handles the old, simple string format
           displayLocation = locationData;
         }
         // --- END OF FIX ---
+
 
         // Calculate Profile Completeness
         int completedFields = 0;
         if (userData['displayName'] != null && (userData['displayName'] as String).isNotEmpty) completedFields++;
         if (userData['profileImageUrl'] != null) completedFields++;
         if (userData['farmName'] != null && (userData['farmName'] as String).isNotEmpty) completedFields++;
-        if (userData['location'] != null) completedFields++;
+        if (locationData != null) completedFields++; // Simplified check
         if (userData['nidFrontImageUrl'] != null) completedFields++;
         if (userData['nidBackImageUrl'] != null) completedFields++;
         double completeness = completedFields / 6.0;
@@ -56,7 +65,7 @@ class FarmerProfileView extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(l10n.myProfile),
-            backgroundColor: Colors.white, // Matching color
+            backgroundColor: Colors.white,
             actions: [
               IconButton(
                 icon: const Icon(Icons.logout),
@@ -72,26 +81,25 @@ class FarmerProfileView extends StatelessWidget {
               const SizedBox(height: 24),
               _buildDetailCard(
                 context,
-                title: 'Personal Information',
+                title: l10n.personalInformation,
                 details: {
-                  'Name': userData['displayName'] ?? 'Not Set',
-                  'Email': userData['email'] ?? 'Not Set',
-                  'Mobile': userData['mobileNumber'] ?? 'Not Set',
+                  l10n.name: userData['displayName'] ?? l10n.notSet,
+                  l10n.email: userData['email'] ?? l10n.notSet,
+                  l10n.mobile: userData['mobileNumber'] ?? l10n.notSet,
                 },
               ),
               const SizedBox(height: 16),
               _buildDetailCard(
                 context,
-                title: 'Farm Information',
+                title: l10n.farmInformation,
                 details: {
-                  'Farm Name': userData['farmName'] ?? 'Not Set',
-                  'Location': displayLocation, // Use the safe display string
+                  l10n.farmName: userData['farmName'] ?? l10n.notSet,
+                  l10n.location: displayLocation.isNotEmpty ? displayLocation : l10n.notSet,
                 },
               ),
               const SizedBox(height: 16),
               _buildNidCard(context, l10n, userData),
               const SizedBox(height: 24),
-              // --- EDIT BUTTON MOVED HERE ---
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
@@ -114,7 +122,7 @@ class FarmerProfileView extends StatelessWidget {
     );
   }
 
-  // --- Helper Widgets ---
+  // --- Helper Widgets --- (These remain mostly the same, just updating text)
   Widget _buildProfileHeader(BuildContext context, Map<String, dynamic> userData, double completeness, AppLocalizations l10n) {
      return Card(
       elevation: 4,
@@ -125,15 +133,11 @@ class FarmerProfileView extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage: userData['profileImageUrl'] != null
-                  ? NetworkImage(userData['profileImageUrl'])
-                  : null,
-              child: userData['profileImageUrl'] == null
-                  ? const Icon(Icons.person, size: 50)
-                  : null,
+              backgroundImage: userData['profileImageUrl'] != null ? NetworkImage(userData['profileImageUrl']) : null,
+              child: userData['profileImageUrl'] == null ? const Icon(Icons.person, size: 50) : null,
             ),
             const SizedBox(height: 16),
-            Text(userData['displayName'] ?? 'Farmer Name', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(userData['displayName'] ?? l10n.farmer, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Text(l10n.profileCompleteness, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),

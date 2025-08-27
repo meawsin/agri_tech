@@ -205,4 +205,43 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get pricePerKg => 'প্রতি কেজি মূল্য';
+
+  @override
+  String get personalInformation => 'ব্যক্তিগত তথ্য';
+
+  @override
+  String get farmInformation => 'খামারের তথ্য';
+
+  @override
+  String get name => 'নাম';
+
+  @override
+  String get email => 'ইমেইল';
+
+  @override
+  String get mobile => 'মোবাইল';
+
+  @override
+  String get division => 'বিভাগ';
+
+  @override
+  String get district => 'জেলা';
+
+  @override
+  String get upazilaThana => 'উপজেলা / থানা';
+
+  @override
+  String get villageArea => 'গ্রাম / এলাকা';
+
+  @override
+  String get notSet => 'এখনো সেট করা হয়নি';
+
+  @override
+  String get updateSuccess => 'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!';
+
+  @override
+  String get updateFailed => 'প্রোফাইল আপডেট করতে ব্যর্থ হয়েছে';
+
+  @override
+  String get requiredField => 'এই ঘরটি পূরণ করতে হবে';
 }

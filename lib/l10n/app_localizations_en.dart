@@ -205,4 +205,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pricePerKg => 'Price per Kg';
+
+  @override
+  String get personalInformation => 'Personal Information';
+
+  @override
+  String get farmInformation => 'Farm Information';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get mobile => 'Mobile';
+
+  @override
+  String get division => 'Division';
+
+  @override
+  String get district => 'District';
+
+  @override
+  String get upazilaThana => 'Upazila / Thana';
+
+  @override
+  String get villageArea => 'Village / Area';
+
+  @override
+  String get notSet => 'Not Set';
+
+  @override
+  String get updateSuccess => 'Profile updated successfully!';
+
+  @override
+  String get updateFailed => 'Failed to update profile';
+
+  @override
+  String get requiredField => 'This field is required';
 }

@@ -1,5 +1,6 @@
+// lib/features/farmer/views/edit_profile_view.dart
+
 import 'dart:io';
-import 'package:agritech/features/auth/widgets/language_switcher.dart';
 import 'package:agritech/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,11 +16,12 @@ class EditProfileView extends StatefulWidget {
 
 class _EditProfileViewState extends State<EditProfileView> {
   final _formKey = GlobalKey<FormState>();
-  // Simplified controllers
   late final TextEditingController _farmNameController;
-  late final TextEditingController _locationController;
+  late final TextEditingController _divisionController;
+  late final TextEditingController _districtController;
+  late final TextEditingController _upazilaController;
+  late final TextEditingController _villageController;
 
-  // Image State
   final ImagePicker _picker = ImagePicker();
   XFile? _profileImage;
   XFile? _nidFrontImage;
@@ -30,30 +32,35 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
-    _farmNameController = TextEditingController(
-      text: widget.userData['farmName'] ?? '',
-    );
-    // Initialize the single location controller
-    _locationController = TextEditingController(
-      text: widget.userData['location'] ?? '',
-    );
+    
+    // --- THIS IS THE FIX ---
+    Map<String, dynamic> locationData = {};
+    final locationValue = widget.userData['location'];
+    if (locationValue is Map<String, dynamic>) {
+      locationData = locationValue;
+    }
+    // --- END OF FIX ---
+
+    _farmNameController = TextEditingController(text: widget.userData['farmName'] ?? '');
+    _divisionController = TextEditingController(text: locationData['division'] ?? '');
+    _districtController = TextEditingController(text: locationData['district'] ?? '');
+    _upazilaController = TextEditingController(text: locationData['upazila'] ?? '');
+    _villageController = TextEditingController(text: locationData['village'] ?? '');
   }
 
+  // ... (The rest of the file is exactly the same as the previous correct version)
   @override
   void dispose() {
     _farmNameController.dispose();
-    _locationController.dispose();
+    _divisionController.dispose();
+    _districtController.dispose();
+    _upazilaController.dispose();
+    _villageController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage(
-    ImageSource source,
-    Function(XFile) onImagePicked,
-  ) async {
-    final XFile? pickedImage = await _picker.pickImage(
-      source: source,
-      imageQuality: 70,
-    );
+  Future<void> _pickImage(ImageSource source, Function(XFile) onImagePicked) async {
+    final XFile? pickedImage = await _picker.pickImage(source: source, imageQuality: 70);
     if (pickedImage != null) {
       setState(() => onImagePicked(pickedImage));
     }
@@ -62,31 +69,32 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       String? profileUrl = widget.userData['profileImageUrl'];
       if (_profileImage != null) {
-        profileUrl = await _dbService.uploadImage(
-          _profileImage!,
-          'profile_images',
-        );
+        profileUrl = await _dbService.uploadImage(_profileImage!, 'profile_images');
       }
       String? nidFrontUrl = widget.userData['nidFrontImageUrl'];
       if (_nidFrontImage != null) {
-        nidFrontUrl = await _dbService.uploadImage(
-          _nidFrontImage!,
-          'nid_images',
-        );
+        nidFrontUrl = await _dbService.uploadImage(_nidFrontImage!, 'nid_images');
       }
       String? nidBackUrl = widget.userData['nidBackImageUrl'];
       if (_nidBackImage != null) {
         nidBackUrl = await _dbService.uploadImage(_nidBackImage!, 'nid_images');
       }
 
-      // Call the updated service method with the simple location string
+      final locationMap = {
+        'division': _divisionController.text.trim(),
+        'district': _districtController.text.trim(),
+        'upazila': _upazilaController.text.trim(),
+        'village': _villageController.text.trim(),
+      };
+
       await _dbService.updateUserProfile(
         farmName: _farmNameController.text.trim(),
-        location: _locationController.text.trim(),
+        location: locationMap,
         profileImageUrl: profileUrl,
         nidFrontUrl: nidFrontUrl,
         nidBackUrl: nidBackUrl,
@@ -94,20 +102,14 @@ class _EditProfileViewState extends State<EditProfileView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text(l10n.updateSuccess), backgroundColor: Colors.green),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update profile: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('${l10n.updateFailed}: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -133,64 +135,54 @@ class _EditProfileViewState extends State<EditProfileView> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _farmNameController,
-                decoration: InputDecoration(
-                  labelText: l10n.farmName,
-                  border: const OutlineInputBorder(),
-                ),
-                validator: (v) => v!.isEmpty ? 'Farm name is required' : null,
+                decoration: InputDecoration(labelText: l10n.farmName, border: const OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
-
-              // The new, simple location field
               TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Location / Address',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) =>
-                    v!.isEmpty ? 'Please enter your location' : null,
+                controller: _divisionController,
+                decoration: InputDecoration(labelText: l10n.division, border: const OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
               ),
-
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _districtController,
+                decoration: InputDecoration(labelText: l10n.district, border: const OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _upazilaController,
+                decoration: InputDecoration(labelText: l10n.upazilaThana, border: const OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _villageController,
+                decoration: InputDecoration(labelText: l10n.villageArea, border: const OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
+              ),
               const SizedBox(height: 24),
-              Text(
-                l10n.nidUpload,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(l10n.nidUpload, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildImagePicker(
                 title: l10n.nidFront,
                 imageFile: _nidFrontImage,
                 existingImageUrl: widget.userData['nidFrontImageUrl'],
-                onTap: () =>
-                    _showImagePicker((img) => _nidFrontImage = img, l10n),
+                onTap: () => _showImagePicker((img) => _nidFrontImage = img, l10n),
               ),
               const SizedBox(height: 16),
               _buildImagePicker(
                 title: l10n.nidBack,
                 imageFile: _nidBackImage,
                 existingImageUrl: widget.userData['nidBackImageUrl'],
-                onTap: () =>
-                    _showImagePicker((img) => _nidFrontImage = img, l10n),
+                onTap: () => _showImagePicker((img) => _nidBackImage = img, l10n),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Change Language',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const LanguageSwitcher(),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : Text(l10n.saveProfile),
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: _isLoading ? const CircularProgressIndicator() : Text(l10n.saveProfile),
               ),
             ],
           ),
@@ -199,7 +191,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  void _showImagePicker(Function(XFile) onImagePicked, AppLocalizations l10n) {
+    void _showImagePicker(Function(XFile) onImagePicked, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -250,7 +242,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             right: 0,
             child: InkWell(
               onTap: () =>
-                  _pickImage(ImageSource.gallery, (img) => _profileImage = img),
+                  _showImagePicker((img) => setState(() => _profileImage = img), l10n),
               child: const CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.green,

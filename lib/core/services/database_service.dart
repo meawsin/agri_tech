@@ -29,7 +29,7 @@ class DatabaseService {
 
   Future<void> updateUserProfile({
     required String farmName,
-    required String location,
+    required Map<String, String> location, // Changed to a Map
     String? profileImageUrl,
     String? nidFrontUrl,
     String? nidBackUrl,
@@ -39,7 +39,7 @@ class DatabaseService {
 
     await _firestore.collection('users').doc(user.uid).set({
       'farmName': farmName,
-      'location': location,
+      'location': location, // Saves the map
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       if (nidFrontUrl != null) 'nidFrontImageUrl': nidFrontUrl,
       if (nidBackUrl != null) 'nidBackImageUrl': nidBackUrl,
@@ -176,7 +176,7 @@ class DatabaseService {
     });
   }
 
-  
+
   Stream<QuerySnapshot> getMyListedCropsStream() {
     final user = _auth.currentUser;
     if (user == null) {

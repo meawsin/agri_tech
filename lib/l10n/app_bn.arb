@@ -65,5 +65,18 @@
     "quantityLabel": "পরিমাণ",
     "fromLabel": "থেকে",
     "statusLabel": "স্ট্যাটাস",
-    "pricePerKg": "প্রতি কেজি মূল্য"
+    "pricePerKg": "প্রতি কেজি মূল্য",
+    "personalInformation": "ব্যক্তিগত তথ্য",
+    "farmInformation": "খামারের তথ্য",
+    "name": "নাম",
+    "email": "ইমেইল",
+    "mobile": "মোবাইল",
+    "division": "বিভাগ",
+    "district": "জেলা",
+    "upazilaThana": "উপজেলা / থানা",
+    "villageArea": "গ্রাম / এলাকা",
+    "notSet": "এখনো সেট করা হয়নি",
+    "updateSuccess": "প্রোফাইল সফলভাবে আপডেট করা হয়েছে!",
+    "updateFailed": "প্রোফাইল আপডেট করতে ব্যর্থ হয়েছে",
+    "requiredField": "এই ঘরটি পূরণ করতে হবে"
 }
