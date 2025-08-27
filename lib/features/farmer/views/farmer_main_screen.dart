@@ -1,6 +1,7 @@
 import 'package:agritech/features/farmer/views/farmer_home_view.dart';
-import 'package:agritech/features/farmer/views/farmer_profile_view.dart'; // Import the new profile view
-import 'package:agritech/features/farmer/views/farmer_wallet_view.dart';   // Import the wallet view
+import 'package:agritech/features/farmer/views/add_crop_view.dart';
+import 'package:agritech/features/farmer/views/farmer_profile_view.dart';
+import 'package:agritech/features/farmer/views/farmer_wallet_view.dart';
 import 'package:flutter/material.dart';
 
 class FarmerMainScreen extends StatefulWidget {
@@ -16,9 +17,9 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
   // UPDATE THE LIST OF PAGES
   static final List<Widget> _widgetOptions = <Widget>[
     const FarmerHomeView(),
-    const Center(child: Text('My Crops Page (TBD)')), 
-    const FarmerWalletView(),   // Use the real wallet view
-    const FarmerProfileView(),  // Use the real profile view
+    const Center(child: Text('My Crops Page (TBD)')),
+    const FarmerWalletView(), // Use the real wallet view
+    const FarmerProfileView(), // Use the real profile view
   ];
 
   void _onItemTapped(int index) {
@@ -37,17 +38,43 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            IconButton(icon: Icon(Icons.home, color: _selectedIndex == 0 ? Colors.green : Colors.grey), onPressed: () => _onItemTapped(0)),
-            IconButton(icon: Icon(Icons.list_alt, color: _selectedIndex == 1 ? Colors.green : Colors.grey), onPressed: () => _onItemTapped(1)),
+            IconButton(
+              icon: Icon(
+                Icons.home,
+                color: _selectedIndex == 0 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(0),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.list_alt,
+                color: _selectedIndex == 1 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(1),
+            ),
             const SizedBox(width: 40), // The space for the FAB
-            IconButton(icon: Icon(Icons.wallet, color: _selectedIndex == 2 ? Colors.green : Colors.grey), onPressed: () => _onItemTapped(2)),
-            IconButton(icon: Icon(Icons.person, color: _selectedIndex == 3 ? Colors.green : Colors.grey), onPressed: () => _onItemTapped(3)),
+            IconButton(
+              icon: Icon(
+                Icons.wallet,
+                color: _selectedIndex == 2 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(2),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.person,
+                color: _selectedIndex == 3 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(3),
+            ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to Add Crop screen
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (context) => const AddCropView()));
         },
         backgroundColor: Colors.green,
         child: const Icon(Icons.add),
