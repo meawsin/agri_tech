@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:agritech/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:agritech/core/services/location_service.dart';
 import '../../../core/services/database_service.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -17,9 +18,6 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _farmNameController;
-  late final TextEditingController _divisionController;
-  late final TextEditingController _districtController;
-  late final TextEditingController _upazilaController;
   late final TextEditingController _villageController;
 
   final ImagePicker _picker = ImagePicker();
@@ -28,40 +26,74 @@ class _EditProfileViewState extends State<EditProfileView> {
   XFile? _nidBackImage;
   bool _isLoading = false;
   final DatabaseService _dbService = DatabaseService();
+  final LocationService _locationService = LocationService();
+
+  List<String> _divisions = [];
+  List<String> _districts = [];
+  List<String> _upazilas = [];
+  List<String> _unions = [];
+
+  String? _selectedDivision;
+  String? _selectedDistrict;
+  String? _selectedUpazila;
+  String? _selectedUnion;
 
   @override
   void initState() {
     super.initState();
-    
-    // --- THIS IS THE FIX ---
-    Map<String, dynamic> locationData = {};
-    final locationValue = widget.userData['location'];
-    if (locationValue is Map<String, dynamic>) {
-      locationData = locationValue;
-    }
-    // --- END OF FIX ---
-
     _farmNameController = TextEditingController(text: widget.userData['farmName'] ?? '');
-    _divisionController = TextEditingController(text: locationData['division'] ?? '');
-    _districtController = TextEditingController(text: locationData['district'] ?? '');
-    _upazilaController = TextEditingController(text: locationData['upazila'] ?? '');
+    final locationData = widget.userData['location'] as Map<String, dynamic>? ?? {};
+    
+    _selectedDivision = locationData['division'];
+    _selectedDistrict = locationData['district'];
+    _selectedUpazila = locationData['upazila'];
+    _selectedUnion = locationData['union'];
     _villageController = TextEditingController(text: locationData['village'] ?? '');
+
+    // Start loading the location data
+    _loadDivisions();
   }
 
-  // ... (The rest of the file is exactly the same as the previous correct version)
   @override
   void dispose() {
     _farmNameController.dispose();
-    _divisionController.dispose();
-    _districtController.dispose();
-    _upazilaController.dispose();
     _villageController.dispose();
     super.dispose();
   }
 
+  // Data loading methods
+  Future<void> _loadDivisions() async {
+    _divisions = await _locationService.getDivisions();
+    if (_selectedDivision != null && _divisions.contains(_selectedDivision)) {
+      await _loadDistricts(_selectedDivision!);
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadDistricts(String division) async {
+    _districts = await _locationService.getDistricts(division);
+    if (_selectedDistrict != null && _districts.contains(_selectedDistrict)) {
+      await _loadUpazilas(_selectedDivision!, _selectedDistrict!);
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadUpazilas(String division, String district) async {
+    _upazilas = await _locationService.getUpazilas(division, district);
+    if (_selectedUpazila != null && _upazilas.contains(_selectedUpazila)) {
+      await _loadUnions(_selectedDivision!, _selectedDistrict!, _selectedUpazila!);
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadUnions(String division, String district, String upazila) async {
+    _unions = await _locationService.getUnions(division, district, upazila);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _pickImage(ImageSource source, Function(XFile) onImagePicked) async {
     final XFile? pickedImage = await _picker.pickImage(source: source, imageQuality: 70);
-    if (pickedImage != null) {
+    if (pickedImage != null && mounted) {
       setState(() => onImagePicked(pickedImage));
     }
   }
@@ -70,6 +102,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     final l10n = AppLocalizations.of(context)!;
+    
+    // ... (rest of the save logic remains the same)
 
     try {
       String? profileUrl = widget.userData['profileImageUrl'];
@@ -86,9 +120,10 @@ class _EditProfileViewState extends State<EditProfileView> {
       }
 
       final locationMap = {
-        'division': _divisionController.text.trim(),
-        'district': _districtController.text.trim(),
-        'upazila': _upazilaController.text.trim(),
+        'division': _selectedDivision ?? '',
+        'district': _selectedDistrict ?? '',
+        'upazila': _selectedUpazila ?? '',
+        'union': _selectedUnion ?? '',
         'village': _villageController.text.trim(),
       };
 
@@ -102,14 +137,18 @@ class _EditProfileViewState extends State<EditProfileView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.updateSuccess), backgroundColor: Colors.green),
+          SnackBar(
+              content: Text(l10n.updateSuccess),
+              backgroundColor: Colors.green),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.updateFailed}: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('${l10n.updateFailed}: $e'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -135,54 +174,142 @@ class _EditProfileViewState extends State<EditProfileView> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _farmNameController,
-                decoration: InputDecoration(labelText: l10n.farmName, border: const OutlineInputBorder()),
+                decoration: InputDecoration(
+                    labelText: l10n.farmName,
+                    border: const OutlineInputBorder()),
                 validator: (v) => v!.isEmpty ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _divisionController,
-                decoration: InputDecoration(labelText: l10n.division, border: const OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
+              // Division Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedDivision,
+                items: _divisions.map((String division) {
+                  return DropdownMenuItem<String>(
+                      value: division, child: Text(division));
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedDivision = newValue;
+                    _selectedDistrict = null;
+                    _districts = [];
+                    _selectedUpazila = null;
+                    _upazilas = [];
+                    _selectedUnion = null;
+                    _unions = [];
+                    if (newValue != null) {
+                      _loadDistricts(newValue);
+                    }
+                  });
+                },
+                decoration: InputDecoration(
+                    labelText: l10n.division,
+                    border: const OutlineInputBorder()),
+                validator: (v) => v == null ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _districtController,
-                decoration: InputDecoration(labelText: l10n.district, border: const OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
+
+              // District Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedDistrict,
+                items: _districts.map((String district) {
+                  return DropdownMenuItem<String>(
+                      value: district, child: Text(district));
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedDistrict = newValue;
+                    _selectedUpazila = null;
+                    _upazilas = [];
+                    _selectedUnion = null;
+                    _unions = [];
+                    if (newValue != null) {
+                      _loadUpazilas(_selectedDivision!, newValue);
+                    }
+                  });
+                },
+                decoration: InputDecoration(
+                    labelText: l10n.district,
+                    border: const OutlineInputBorder()),
+                validator: (v) => v == null ? l10n.requiredField : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _upazilaController,
-                decoration: InputDecoration(labelText: l10n.upazilaThana, border: const OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? l10n.requiredField : null,
-              ),
+
+              // Upazila Dropdown
+              DropdownButtonFormField<String>(
+                  value: _selectedUpazila,
+                  items: _upazilas.map((String upazila) {
+                    return DropdownMenuItem<String>(
+                        value: upazila, child: Text(upazila));
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedUpazila = newValue;
+                      _selectedUnion = null;
+                      _unions = [];
+                      if (newValue != null) {
+                        _loadUnions(
+                            _selectedDivision!, _selectedDistrict!, newValue);
+                      }
+                    });
+                  },
+                  decoration: InputDecoration(
+                      labelText: l10n.upazilaThana,
+                      border: const OutlineInputBorder()),
+                  validator: (v) => v == null ? l10n.requiredField : null),
+              const SizedBox(height: 16),
+
+              // Union Dropdown
+              DropdownButtonFormField<String>(
+                  value: _selectedUnion,
+                  items: _unions.map((String union) {
+                    return DropdownMenuItem<String>(
+                        value: union, child: Text(union));
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedUnion = newValue;
+                    });
+                  },
+                  decoration: InputDecoration(
+                      labelText: "Union", // Consider adding this to l10n
+                      border: const OutlineInputBorder()),
+                  validator: (v) => v == null ? l10n.requiredField : null),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _villageController,
-                decoration: InputDecoration(labelText: l10n.villageArea, border: const OutlineInputBorder()),
+                decoration: InputDecoration(
+                    labelText: l10n.villageArea,
+                    border: const OutlineInputBorder()),
                 validator: (v) => v!.isEmpty ? l10n.requiredField : null,
               ),
               const SizedBox(height: 24),
-              Text(l10n.nidUpload, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(l10n.nidUpload,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildImagePicker(
                 title: l10n.nidFront,
                 imageFile: _nidFrontImage,
                 existingImageUrl: widget.userData['nidFrontImageUrl'],
-                onTap: () => _showImagePicker((img) => _nidFrontImage = img, l10n),
+                onTap: () =>
+                    _showImagePicker((img) => _nidFrontImage = img, l10n),
               ),
               const SizedBox(height: 16),
               _buildImagePicker(
                 title: l10n.nidBack,
                 imageFile: _nidBackImage,
                 existingImageUrl: widget.userData['nidBackImageUrl'],
-                onTap: () => _showImagePicker((img) => _nidBackImage = img, l10n),
+                onTap: () =>
+                    _showImagePicker((img) => _nidBackImage = img, l10n),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveProfile,
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: _isLoading ? const CircularProgressIndicator() : Text(l10n.saveProfile),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : Text(l10n.saveProfile),
               ),
             ],
           ),
@@ -191,7 +318,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-    void _showImagePicker(Function(XFile) onImagePicked, AppLocalizations l10n) {
+  void _showImagePicker(Function(XFile) onImagePicked, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -228,11 +355,10 @@ class _EditProfileViewState extends State<EditProfileView> {
             backgroundImage: _profileImage != null
                 ? FileImage(File(_profileImage!.path))
                 : (widget.userData['profileImageUrl'] != null
-                          ? NetworkImage(widget.userData['profileImageUrl'])
-                          : null)
-                      as ImageProvider?,
-            child:
-                _profileImage == null &&
+                        ? NetworkImage(widget.userData['profileImageUrl'])
+                        : null)
+                    as ImageProvider?,
+            child: _profileImage == null &&
                     widget.userData['profileImageUrl'] == null
                 ? const Icon(Icons.person, size: 60)
                 : null,
@@ -241,8 +367,8 @@ class _EditProfileViewState extends State<EditProfileView> {
             bottom: 0,
             right: 0,
             child: InkWell(
-              onTap: () =>
-                  _showImagePicker((img) => setState(() => _profileImage = img), l10n),
+              onTap: () => _showImagePicker(
+                  (img) => setState(() => _profileImage = img), l10n),
               child: const CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.green,
