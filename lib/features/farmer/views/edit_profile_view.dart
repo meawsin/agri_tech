@@ -41,18 +41,51 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
-    _farmNameController = TextEditingController(text: widget.userData['farmName'] ?? '');
-    final locationData = widget.userData['location'] as Map<String, dynamic>? ?? {};
+    _farmNameController =
+        TextEditingController(text: widget.userData['farmName'] ?? '');
+    _villageController =
+        TextEditingController(text: widget.userData['location']?['village'] ?? '');
     
-    _selectedDivision = locationData['division'];
-    _selectedDistrict = locationData['district'];
-    _selectedUpazila = locationData['upazila'];
-    _selectedUnion = locationData['union'];
-    _villageController = TextEditingController(text: locationData['village'] ?? '');
-
-    // Start loading the location data
-    _loadDivisions();
+    // Initialize and load the address data safely.
+    _initializeAddressFields();
   }
+
+  Future<void> _initializeAddressFields() async {
+    final locationData = widget.userData['location'] as Map<String, dynamic>? ?? {};
+
+    // Load all divisions first.
+    _divisions = await _locationService.getDivisions();
+
+    // Check if the saved division is valid before setting it.
+    String? initialDivision = locationData['division'];
+    if (initialDivision != null && _divisions.contains(initialDivision)) {
+      _selectedDivision = initialDivision;
+      _districts = await _locationService.getDistricts(_selectedDivision!);
+      
+      // Check if the saved district is valid.
+      String? initialDistrict = locationData['district'];
+      if(initialDistrict != null && _districts.contains(initialDistrict)) {
+        _selectedDistrict = initialDistrict;
+        _upazilas = await _locationService.getUpazilas(_selectedDivision!, _selectedDistrict!);
+
+        // Check if the saved upazila is valid.
+        String? initialUpazila = locationData['upazila'];
+        if(initialUpazila != null && _upazilas.contains(initialUpazila)) {
+          _selectedUpazila = initialUpazila;
+          _unions = await _locationService.getUnions(_selectedDivision!, _selectedDistrict!, _selectedUpazila!);
+
+          // Check if the saved union is valid.
+          String? initialUnion = locationData['union'];
+          if(initialUnion != null && _unions.contains(initialUnion)) {
+            _selectedUnion = initialUnion;
+          }
+        }
+      }
+    }
+    // Update the UI once all data is loaded and validated.
+    if(mounted) setState(() {});
+  }
+
 
   @override
   void dispose() {
@@ -61,38 +94,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.dispose();
   }
 
-  // Data loading methods
-  Future<void> _loadDivisions() async {
-    _divisions = await _locationService.getDivisions();
-    if (_selectedDivision != null && _divisions.contains(_selectedDivision)) {
-      await _loadDistricts(_selectedDivision!);
-    }
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadDistricts(String division) async {
-    _districts = await _locationService.getDistricts(division);
-    if (_selectedDistrict != null && _districts.contains(_selectedDistrict)) {
-      await _loadUpazilas(_selectedDivision!, _selectedDistrict!);
-    }
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadUpazilas(String division, String district) async {
-    _upazilas = await _locationService.getUpazilas(division, district);
-    if (_selectedUpazila != null && _upazilas.contains(_selectedUpazila)) {
-      await _loadUnions(_selectedDivision!, _selectedDistrict!, _selectedUpazila!);
-    }
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadUnions(String division, String district, String upazila) async {
-    _unions = await _locationService.getUnions(division, district, upazila);
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _pickImage(ImageSource source, Function(XFile) onImagePicked) async {
-    final XFile? pickedImage = await _picker.pickImage(source: source, imageQuality: 70);
+  Future<void> _pickImage(
+      ImageSource source, Function(XFile) onImagePicked) async {
+    final XFile? pickedImage =
+        await _picker.pickImage(source: source, imageQuality: 70);
     if (pickedImage != null && mounted) {
       setState(() => onImagePicked(pickedImage));
     }
@@ -102,21 +107,22 @@ class _EditProfileViewState extends State<EditProfileView> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     final l10n = AppLocalizations.of(context)!;
-    
-    // ... (rest of the save logic remains the same)
 
     try {
       String? profileUrl = widget.userData['profileImageUrl'];
       if (_profileImage != null) {
-        profileUrl = await _dbService.uploadImage(_profileImage!, 'profile_images');
+        profileUrl =
+            await _dbService.uploadImage(_profileImage!, 'profile_images');
       }
       String? nidFrontUrl = widget.userData['nidFrontImageUrl'];
       if (_nidFrontImage != null) {
-        nidFrontUrl = await _dbService.uploadImage(_nidFrontImage!, 'nid_images');
+        nidFrontUrl =
+            await _dbService.uploadImage(_nidFrontImage!, 'nid_images');
       }
       String? nidBackUrl = widget.userData['nidBackImageUrl'];
       if (_nidBackImage != null) {
-        nidBackUrl = await _dbService.uploadImage(_nidBackImage!, 'nid_images');
+        nidBackUrl =
+            await _dbService.uploadImage(_nidBackImage!, 'nid_images');
       }
 
       final locationMap = {
@@ -187,7 +193,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                   return DropdownMenuItem<String>(
                       value: division, child: Text(division));
                 }).toList(),
-                onChanged: (newValue) {
+                onChanged: (newValue) async {
                   setState(() {
                     _selectedDivision = newValue;
                     _selectedDistrict = null;
@@ -196,10 +202,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                     _upazilas = [];
                     _selectedUnion = null;
                     _unions = [];
-                    if (newValue != null) {
-                      _loadDistricts(newValue);
-                    }
                   });
+                  if (newValue != null) {
+                    _districts = await _locationService.getDistricts(newValue);
+                    setState(() {});
+                  }
                 },
                 decoration: InputDecoration(
                     labelText: l10n.division,
@@ -215,17 +222,18 @@ class _EditProfileViewState extends State<EditProfileView> {
                   return DropdownMenuItem<String>(
                       value: district, child: Text(district));
                 }).toList(),
-                onChanged: (newValue) {
+                onChanged: (newValue) async {
                   setState(() {
                     _selectedDistrict = newValue;
                     _selectedUpazila = null;
                     _upazilas = [];
                     _selectedUnion = null;
                     _unions = [];
-                    if (newValue != null) {
-                      _loadUpazilas(_selectedDivision!, newValue);
-                    }
                   });
+                  if (newValue != null) {
+                    _upazilas = await _locationService.getUpazilas(_selectedDivision!, newValue);
+                     setState(() {});
+                  }
                 },
                 decoration: InputDecoration(
                     labelText: l10n.district,
@@ -241,16 +249,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                     return DropdownMenuItem<String>(
                         value: upazila, child: Text(upazila));
                   }).toList(),
-                  onChanged: (newValue) {
+                  onChanged: (newValue) async {
                     setState(() {
                       _selectedUpazila = newValue;
                       _selectedUnion = null;
                       _unions = [];
-                      if (newValue != null) {
-                        _loadUnions(
-                            _selectedDivision!, _selectedDistrict!, newValue);
-                      }
                     });
+                    if (newValue != null) {
+                      _unions = await _locationService.getUnions(_selectedDivision!, _selectedDistrict!, newValue);
+                      setState(() {});
+                    }
                   },
                   decoration: InputDecoration(
                       labelText: l10n.upazilaThana,
