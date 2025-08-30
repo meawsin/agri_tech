@@ -34,13 +34,43 @@ class MyOrdersView extends StatelessWidget {
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index].data() as Map<String, dynamic>;
+              final orderId = orders[index].id;
+              final bool canBeActioned = order['orderStatus'] == 'placed';
+
               return Card(
                 margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text(order['cropName'] ?? 'Unknown Crop'),
-                  subtitle: Text(
-                      '${l10n.quantityLabel}: ${order['quantityKg']} Kg\n${l10n.fromLabel}: ${order['retailerName']}'),
-                  trailing: Text('${l10n.statusLabel}: ${order['orderStatus']}'),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        title: Text(order['cropName'] ?? 'Unknown Crop'),
+                        subtitle: Text(
+                            '${l10n.quantityLabel}: ${order['quantityKg']} Kg\n${l10n.fromLabel}: ${order['retailerName']}'),
+                        trailing:
+                            Text('${l10n.statusLabel}: ${order['orderStatus']}'),
+                      ),
+                      if (canBeActioned)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () =>
+                                  dbService.updateOrderStatus(orderId, 'Cancelled'),
+                              child: const Text('Cancel',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => dbService.updateOrderStatus(
+                                  orderId, 'Confirmed'),
+                              child: const Text('Confirm'),
+                            ),
+                          ],
+                        )
+                    ],
+                  ),
                 ),
               );
             },

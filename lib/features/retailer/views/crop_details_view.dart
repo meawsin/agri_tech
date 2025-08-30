@@ -1,177 +1,108 @@
 // lib/features/retailer/views/crop_details_view.dart
 
 import 'package:agritech/core/services/database_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CropDetailsView extends StatefulWidget {
-  final QueryDocumentSnapshot cropDoc;
+  final String cropId;
+  final Map<String, dynamic> cropData;
 
-  const CropDetailsView({super.key, required this.cropDoc});
+  const CropDetailsView({super.key, required this.cropId, required this.cropData});
 
   @override
   State<CropDetailsView> createState() => _CropDetailsViewState();
 }
 
 class _CropDetailsViewState extends State<CropDetailsView> {
-  void _showPlaceOrderDialog(
-      BuildContext context, Map<String, dynamic> crop) {
-    final quantityController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Place an Order'),
-          content: Form(
-            key: formKey,
-            child: TextFormField(
-              controller: quantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter quantity in Kg',
-                hintText: 'e.g., 50',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a quantity';
-                }
-                final quantity = double.tryParse(value);
-                if (quantity == null || quantity <= 0) {
-                  return 'Please enter a valid quantity';
-                }
-                if (quantity > crop['availableQuantityKg']) {
-                  return 'Quantity exceeds available stock';
-                }
-                return null;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            ElevatedButton(
-              child: const Text('Confirm Order'),
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final quantity =
-                      double.parse(quantityController.text.trim());
-                  final dbService = DatabaseService();
-
-                  try {
-                    await dbService.placeOrder(
-                      cropId: widget.cropDoc.id,
-                      farmerUid: crop['farmerUid'],
-                      farmerName: crop['farmerName'],
-                      cropType: crop['cropType'],
-                      quantityKg: quantity,
-                      pricePerKg: crop['pricePerKg'].toDouble(),
-                    );
-                    if (!mounted) return;
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Order placed successfully!'),
-                          backgroundColor: Colors.green),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                          backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  final TextEditingController _quantityController = TextEditingController();
+  final DatabaseService _dbService = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
-    final crop = widget.cropDoc.data() as Map<String, dynamic>;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(crop['cropType'] ?? 'Crop Details'),
+        title: Text(widget.cropData['name'] ?? 'Crop Details'),
         backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              crop['cropType'] ?? 'Unknown Crop',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            if (crop['variant'] != null && crop['variant'].isNotEmpty)
+        child: SingleChildScrollView( // Added for smaller screens
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                'Variant: ${crop['variant']}',
-                style: Theme.of(context).textTheme.titleMedium,
+                widget.cropData['name'] ?? 'Unnamed Crop',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildDetailRow('Price', '৳ ${crop['pricePerKg']} / Kg'),
-                    _buildDetailRow(
-                        'Available Quantity', '${crop['availableQuantityKg']} Kg'),
-                    _buildDetailRow('Listed by', crop['farmerName'] ?? 'N/A'),
-                    _buildDetailRow(
-                        'Farm Location', crop['farmerLocation'] ?? 'Not Available'),
-                    if (crop['seedBrand'] != null &&
-                        crop['seedBrand'].isNotEmpty)
-                      _buildDetailRow('Seed Brand', crop['seedBrand']),
-                  ],
+              const SizedBox(height: 8),
+              Text('Sold by: ${widget.cropData['farmerName'] ?? 'Unknown Farmer'}'),
+              const SizedBox(height: 16),
+              Text('Price: ৳${widget.cropData['pricePerKg']}/Kg'),
+              Text('Available: ${widget.cropData['quantityKg']} Kg'),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _quantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Enter quantity in Kg',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.shopping_cart),
-                label: const Text('Place Order'),
-                onPressed: () => _showPlaceOrderDialog(context, crop),
-                style: ElevatedButton.styleFrom(
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 18)),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+                  ),
+                  onPressed: () async {
+                    final quantity = int.tryParse(_quantityController.text);
+                    if (quantity == null || quantity <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Please enter a valid quantity.')),
+                      );
+                      return;
+                    }
+                    if (quantity > widget.cropData['quantityKg']) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content:
+                                Text('Requested quantity exceeds available stock.')),
+                      );
+                      return;
+                    }
 
-  Widget _buildDetailRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Text(value, style: const TextStyle(fontSize: 16)),
-        ],
+                    // Store context-dependent objects before the async gap
+                    final navigator = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
+
+                    // CORRECTED: Call placeOrder with the required named parameters
+                    await _dbService.placeOrder(
+                      cropId: widget.cropId,
+                      farmerUid: widget.cropData['farmerUid'],
+                      farmerName: widget.cropData['farmerName'],
+                      cropType: widget.cropData['name'], // Using name as cropType for the order
+                      quantityKg: quantity.toDouble(),
+                      pricePerKg: (widget.cropData['pricePerKg'] as num).toDouble(),
+                    );
+
+                    if (!mounted) return;
+
+                    navigator.pop();
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Order placed successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  child: const Text('Place Order'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

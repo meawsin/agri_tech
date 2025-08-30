@@ -188,7 +188,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               const SizedBox(height: 16),
               // Division Dropdown
               DropdownButtonFormField<String>(
-                value: _selectedDivision,
+                initialValue: _selectedDivision,
                 items: _divisions.map((String division) {
                   return DropdownMenuItem<String>(
                       value: division, child: Text(division));
@@ -217,7 +217,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               // District Dropdown
               DropdownButtonFormField<String>(
-                value: _selectedDistrict,
+                initialValue: _selectedDistrict,
                 items: _districts.map((String district) {
                   return DropdownMenuItem<String>(
                       value: district, child: Text(district));
@@ -244,7 +244,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               // Upazila Dropdown
               DropdownButtonFormField<String>(
-                  value: _selectedUpazila,
+                  initialValue: _selectedUpazila,
                   items: _upazilas.map((String upazila) {
                     return DropdownMenuItem<String>(
                         value: upazila, child: Text(upazila));
@@ -268,7 +268,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
               // Union Dropdown
               DropdownButtonFormField<String>(
-                  value: _selectedUnion,
+                  initialValue: _selectedUnion,
                   items: _unions.map((String union) {
                     return DropdownMenuItem<String>(
                         value: union, child: Text(union));
