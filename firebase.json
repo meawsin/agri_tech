@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"agritech-ac407","appId":"1:760846035526:android:0fe8fe730315d536ba7847","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"agritech-ac407","configurations":{"android":"1:760846035526:android:0fe8fe730315d536ba7847","web":"1:760846035526:web:84fd3b3bd11c1576ba7847"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "agritech-ac407",
+          "appId": "1:760846035526:android:0fe8fe730315d536ba7847",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "agritech-ac407",
+          "configurations": {
+            "android": "1:760846035526:android:0fe8fe730315d536ba7847",
+            "web": "1:760846035526:web:84fd3b3bd11c1576ba7847"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}
